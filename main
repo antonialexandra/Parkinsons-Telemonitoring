@@ -1,0 +1,51 @@
+
+from sklearn import neural_network
+import pandas as pd
+import numpy as np
+from sklearn.metrics import mean_squared_error
+from math import sqrt
+
+# INCARCARE DATE
+df = pd.read_csv(r'C:\Users\anton\Downloads\parkinsons_updrs (5).data', index_col=0)
+my_data=df.to_numpy()
+
+etichete=my_data[:,3:5]
+my_data = np.delete(my_data,[3,4],1)
+my_data=my_data.astype(float)
+train_p=75
+slice_d=train_p/100*len(my_data)
+slice_d = int(slice_d)
+
+date_train=my_data[0:slice_d,:]
+date_test = my_data[slice_d:,]
+etichete_train = etichete[:slice_d]
+etichete_test = etichete[slice_d:]
+
+#Antrenarea datelor-regresie
+#regr = neural_network.MLPRegressor(hidden_layer_sizes=(20,),learning_rate_init=0.01, max_iter=200)
+#regr.fit(date_train,etichete_train)
+values_learning_rate=[0.1, 0.01]
+hidden_l=[1, 2]
+set_of_layers=np.array([[20,20],[20,10],[10,10],[10,5]])
+
+for i in range(len(values_learning_rate)):
+    for j in range(len(hidden_l)):
+        print('\nRetea neuronala cu '+ str(hidden_l[j]) + ' straturi ascunse , '+ str(values_learning_rate[i])+' learning rate\n')
+        #Pentru un strat
+        if(hidden_l[j]==1):
+            for k in[10,20]:
+                regr = neural_network.MLPRegressor(hidden_layer_sizes=k,learning_rate_init=values_learning_rate[i], max_iter=200)
+                regr.fit(date_train,etichete_train)
+                
+                #Calculam eroarea
+                predictie=regr.predict(date_test)
+                MSE = mean_squared_error(predictie,etichete_test)
+                print('\nEroarea pentru '+str(k)+' neuroni pe strat este de '+ str("%.2f" %sqrt(MSE))+'%')  
+        if(hidden_l[j]==2):
+            for k in range(len(set_of_layers)):
+                regr = neural_network.MLPRegressor(hidden_layer_sizes=set_of_layers[k],learning_rate_init=values_learning_rate[i], max_iter=200)
+                regr.fit(date_train,etichete_train)
+                
+                predictie=regr.predict(date_test)
+                MSE = mean_squared_error(predictie,etichete_test)
+                print('\nEroarea pentru '+str(set_of_layers[k])+' neuroni pe stratul 1 si 2 este de '+ str("%.2f" %sqrt(MSE))+'%')
